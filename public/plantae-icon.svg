@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#1A4D2E"/>
+  <!-- Leaf body -->
+  <path d="M256 96 C170 96 100 180 110 290 C140 220 200 190 256 200 C312 190 372 220 402 290 C412 180 342 96 256 96Z" fill="#4CAF50" opacity="0.9"/>
+  <!-- Secondary leaf -->
+  <path d="M256 200 C220 200 170 230 150 290 C180 260 216 248 256 250 C296 248 332 260 362 290 C342 230 292 200 256 200Z" fill="#81C784" opacity="0.85"/>
+  <!-- Stem -->
+  <rect x="248" y="290" width="16" height="120" rx="8" fill="#4CAF50"/>
+  <!-- Vein -->
+  <line x1="256" y1="110" x2="256" y2="290" stroke="#E8F5E9" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+</svg>

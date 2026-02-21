@@ -2,17 +2,22 @@
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 @keyframes write {
-  to { stroke-dashoffset: 0; }
+  to {
+    stroke-dashoffset: 0;
+  }
 }
 
 @keyframes fillIn {
-  to { fill-opacity: 1; }
+  to {
+    fill-opacity: 1;
+  }
 }
 
 @keyframes dropTail {
@@ -20,6 +25,7 @@
     opacity: 1;
     stroke-dashoffset: 3500;
   }
+
   100% {
     opacity: 1;
     stroke-dashoffset: 0;
@@ -27,7 +33,9 @@
 }
 
 @keyframes fadeOut {
-  to { opacity: 0; }
+  to {
+    opacity: 0;
+  }
 }
 
 /* 
@@ -38,6 +46,7 @@
   0% {
     margin-top: 0;
   }
+
   100% {
     margin-top: -100vh;
   }
@@ -51,17 +60,58 @@
 }
 
 @keyframes fadeIn {
-  to { opacity: 1; }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Continuous floating animation for Hero elements */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-15px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-15px);
+  }
 }
 
 /* Infinite scrolling ticker animation */
 @keyframes scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Scanner Laser Animation */
+@keyframes scannerLaser {
+
+  0%,
+  100% {
+    top: 10%;
+  }
+
+  50% {
+    top: 90%;
+  }
+}
+
+@keyframes scanPulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
 }
