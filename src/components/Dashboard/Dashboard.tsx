@@ -1,141 +1,130 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Leaf, History, User, Search, ChevronRight, Droplets, Sun, Sparkles } from 'lucide-react';
+import { Camera, Leaf, History, User, Search } from 'lucide-react';
 
 interface DashboardProps {
     onScan: () => void;
     onHistory: () => void;
     onGarden: () => void;
     onSearch: () => void;
+    onProfile: () => void;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onScan, onHistory, onGarden, onSearch }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onScan, onHistory, onGarden, onSearch, onProfile }) => {
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#F0F7F0', color: '#1A4D2E', fontFamily: 'system-ui, -apple-system, sans-serif', overflow: 'hidden' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#F0F7F0', fontFamily: 'system-ui, -apple-system, sans-serif', overflow: 'hidden', position: 'relative' }}>
 
             {/* Header */}
-            <div style={{ padding: '16px 20px 12px', background: 'white', borderBottom: '1px solid #E0EDE0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-                <button onClick={onGarden} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: 'pointer' }}>
-                    <div style={{ width: '32px', height: '32px', background: '#1A4D2E', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ padding: '52px 20px 16px', background: 'white', borderBottom: '1px solid #E0EDE0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div style={{ width: '34px', height: '34px', background: '#1A4D2E', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Leaf size={18} color="white" />
                     </div>
-                    <span style={{ fontSize: '20px', fontWeight: '800', color: '#1A4D2E', letterSpacing: '-0.5px' }}>Plantae</span>
-                </button>
-                <button onClick={onSearch} style={{ background: '#F0F7F0', border: 'none', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                    <Search size={20} color="#1A4D2E" />
+                    <span style={{ fontSize: '22px', fontWeight: '800', color: '#1A4D2E', letterSpacing: '-0.5px' }}>Plantae</span>
+                </div>
+                <button onClick={onProfile} style={{ width: '38px', height: '38px', background: '#1A4D2E', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <User size={18} color="white" />
                 </button>
             </div>
 
             {/* Scrollable Content */}
-            <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '80px' }} className="no-scrollbar">
+            <div style={{ flex: 1, overflowY: 'auto', paddingBottom: '90px' }} className="no-scrollbar">
 
-                {/* Hero / Scan Card */}
-                <div style={{ padding: '20px 20px 8px' }}>
+                {/* Hero Scan Card */}
+                <div style={{ padding: '20px 20px 12px' }}>
                     <motion.button
                         whileTap={{ scale: 0.97 }}
                         onClick={onScan}
-                        style={{ width: '100%', background: 'linear-gradient(135deg, #1A4D2E 0%, #2D7A4F 100%)', border: 'none', borderRadius: '24px', padding: '28px 24px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left', boxShadow: '0 8px 32px rgba(26,77,46,0.3)', position: 'relative', overflow: 'hidden' }}
+                        style={{ width: '100%', background: 'linear-gradient(135deg, #1A4D2E 0%, #2E7D4F 100%)', border: 'none', borderRadius: '28px', padding: '28px 24px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '14px', textAlign: 'left', boxShadow: '0 8px 32px rgba(26,77,46,0.3)', position: 'relative', overflow: 'hidden' }}
                     >
-                        {/* Background decoration */}
-                        <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '120px', height: '120px', background: 'rgba(255,255,255,0.05)', borderRadius: '50%' }} />
-                        <div style={{ position: 'absolute', right: '20px', top: '20px', width: '60px', height: '60px', background: 'rgba(255,255,255,0.08)', borderRadius: '50%' }} />
-
-                        <div style={{ width: '52px', height: '52px', background: 'rgba(255,255,255,0.2)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(8px)' }}>
+                        <div style={{ position: 'absolute', right: '-20px', top: '-20px', width: '120px', height: '120px', background: 'rgba(255,255,255,0.04)', borderRadius: '50%' }} />
+                        <div style={{ width: '54px', height: '54px', background: 'rgba(255,255,255,0.18)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Camera size={26} color="white" />
                         </div>
                         <div>
-                            <div style={{ fontSize: '22px', fontWeight: '800', color: 'white', marginBottom: '4px' }}>Scan a Plant</div>
-                            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', fontWeight: '400' }}>Point your camera to identify any plant instantly</div>
+                            <div style={{ fontSize: '22px', fontWeight: '800', color: 'white', marginBottom: '6px' }}>Identify a Plant</div>
+                            <div style={{ fontSize: '14px', color: 'rgba(255,255,255,0.65)', lineHeight: 1.4 }}>Point your camera or upload a photo — Gemini AI identifies any plant on Earth instantly</div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.9)', fontWeight: '600' }}>Open Camera</span>
-                            <ChevronRight size={16} color="rgba(255,255,255,0.9)" />
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.15)', borderRadius: '20px', padding: '8px 16px', alignSelf: 'flex-start' }}>
+                            <div style={{ width: '8px', height: '8px', background: '#4CAF50', borderRadius: '50%' }} />
+                            <span style={{ color: 'white', fontSize: '13px', fontWeight: '700' }}>Powered by Gemini AI</span>
                         </div>
                     </motion.button>
                 </div>
 
                 {/* Quick Actions */}
-                <div style={{ padding: '8px 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <motion.button
-                        whileTap={{ scale: 0.96 }}
-                        onClick={onHistory}
-                        style={{ background: 'white', border: 'none', borderRadius: '20px', padding: '20px 16px', cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 12px rgba(26,77,46,0.06)' }}
-                    >
-                        <div style={{ width: '40px', height: '40px', background: '#EDF7ED', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
-                            <History size={20} color="#1A4D2E" />
-                        </div>
-                        <div style={{ fontSize: '15px', fontWeight: '700', color: '#1A4D2E', marginBottom: '2px' }}>History</div>
-                        <div style={{ fontSize: '12px', color: '#4E342E', opacity: 0.5 }}>Past scans</div>
-                    </motion.button>
-
-                    <motion.button
-                        whileTap={{ scale: 0.96 }}
-                        onClick={onSearch}
-                        style={{ background: 'white', border: 'none', borderRadius: '20px', padding: '20px 16px', cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 12px rgba(26,77,46,0.06)' }}
-                    >
-                        <div style={{ width: '40px', height: '40px', background: '#EDF7ED', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
-                            <Search size={20} color="#1A4D2E" />
-                        </div>
-                        <div style={{ fontSize: '15px', fontWeight: '700', color: '#1A4D2E', marginBottom: '2px' }}>Browse</div>
-                        <div style={{ fontSize: '12px', color: '#4E342E', opacity: 0.5 }}>Plant database</div>
-                    </motion.button>
+                <div style={{ padding: '4px 20px 8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
+                    {[
+                        { icon: Search, label: 'Search', sublabel: 'Any plant', action: onSearch, color: '#E3F2FD', iconColor: '#1565C0' },
+                        { icon: History, label: 'History', sublabel: 'Past scans', action: onHistory, color: '#E8F5E9', iconColor: '#2E7D32' },
+                        { icon: Leaf, label: 'Garden', sublabel: 'My plants', action: onGarden, color: '#FFF8E1', iconColor: '#F57F17' },
+                    ].map(({ icon: Icon, label, sublabel, action, color, iconColor }) => (
+                        <motion.button
+                            key={label}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={action}
+                            style={{ background: 'white', border: 'none', borderRadius: '20px', padding: '16px 12px', cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 10px rgba(26,77,46,0.06)' }}
+                        >
+                            <div style={{ width: '38px', height: '38px', background: color, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+                                <Icon size={20} color={iconColor} />
+                            </div>
+                            <div style={{ fontSize: '13px', fontWeight: '700', color: '#1A4D2E', marginBottom: '2px' }}>{label}</div>
+                            <div style={{ fontSize: '11px', color: '#4E342E', opacity: 0.5, lineHeight: 1.2 }}>{sublabel}</div>
+                        </motion.button>
+                    ))}
                 </div>
 
-                {/* Daily Tips */}
-                <div style={{ padding: '8px 20px 0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <h2 style={{ fontSize: '17px', fontWeight: '700', color: '#1A4D2E', margin: 0 }}>Daily Care Tips</h2>
-                        <span style={{ fontSize: '13px', color: '#4CAF50', fontWeight: '600' }}>View all</span>
+                {/* Info Banner */}
+                <div style={{ padding: '8px 20px' }}>
+                    <div style={{ background: 'white', borderRadius: '20px', padding: '16px 20px', boxShadow: '0 2px 10px rgba(26,77,46,0.05)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ fontSize: '32px' }}>🌍</div>
+                        <div>
+                            <div style={{ fontWeight: '700', fontSize: '15px', color: '#1A4D2E', marginBottom: '2px' }}>400,000+ Species</div>
+                            <div style={{ fontSize: '13px', color: '#4E342E', opacity: 0.6, lineHeight: 1.3 }}>Gemini AI can identify and explain any plant on Earth</div>
+                        </div>
                     </div>
+                </div>
 
+                {/* How it works */}
+                <div style={{ padding: '8px 20px 0' }}>
+                    <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1A4D2E', margin: '0 0 12px' }}>How it works</h2>
                     {[
-                        { icon: Droplets, iconBg: '#E3F2FD', iconColor: '#1976D2', plant: 'Monstera', tip: 'Check soil moisture before watering', tag: 'Watering' },
-                        { icon: Sun, iconBg: '#FFFDE7', iconColor: '#F9A825', plant: 'Snake Plant', tip: 'Indirect sunlight is best today', tag: 'Light' },
-                        { icon: Sparkles, iconBg: '#F3E5F5', iconColor: '#7B1FA2', plant: 'Peace Lily', tip: 'Time to wipe down the leaves', tag: 'Care' },
-                    ].map((item, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 * i }}
-                            style={{ background: 'white', borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 2px 8px rgba(26,77,46,0.05)' }}
-                        >
-                            <div style={{ width: '44px', height: '44px', background: item.iconBg, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <item.icon size={22} color={item.iconColor} />
+                        { num: '1', title: 'Point or Upload', desc: 'Use your camera or pick a photo from your gallery' },
+                        { num: '2', title: 'AI Identifies', desc: 'Gemini analyzes the image and identifies the plant species' },
+                        { num: '3', title: 'Get Full Details', desc: 'Receive care guide, toxicity, and botanical information' },
+                    ].map((step) => (
+                        <div key={step.num} style={{ background: 'white', borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 2px 8px rgba(26,77,46,0.04)' }}>
+                            <div style={{ width: '36px', height: '36px', background: '#1A4D2E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <span style={{ color: 'white', fontWeight: '800', fontSize: '14px' }}>{step.num}</span>
                             </div>
-                            <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: '14px', fontWeight: '700', color: '#1A4D2E' }}>{item.plant}</div>
-                                <div style={{ fontSize: '12px', color: '#4E342E', opacity: 0.6 }}>{item.tip}</div>
+                            <div>
+                                <div style={{ fontWeight: '700', fontSize: '14px', color: '#1A4D2E', marginBottom: '2px' }}>{step.title}</div>
+                                <div style={{ fontSize: '12px', color: '#4E342E', opacity: 0.6 }}>{step.desc}</div>
                             </div>
-                            <span style={{ background: '#EDF7ED', color: '#1A4D2E', fontSize: '11px', fontWeight: '700', padding: '4px 10px', borderRadius: '20px', letterSpacing: '0.3px' }}>{item.tag}</span>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             </div>
 
             {/* Bottom Tab Bar */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #E0EDE0', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0 20px', paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}>
-                <button onClick={onGarden} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#4CAF50' }}>
-                    <Leaf size={24} />
-                    <span style={{ fontSize: '10px', fontWeight: '600' }}>Garden</span>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #E0EDE0', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0', paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}>
+                <button onClick={onGarden} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#4CAF50' }}>
+                    <Leaf size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>Garden</span>
                 </button>
-                <button onClick={onSearch} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
-                    <Search size={24} />
-                    <span style={{ fontSize: '10px', fontWeight: '600' }}>Search</span>
+                <button onClick={onSearch} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
+                    <Search size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>Search</span>
                 </button>
-                <button onClick={onScan} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', marginTop: '-24px' }}>
+                <button onClick={onScan} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', marginTop: '-24px' }}>
                     <div style={{ width: '60px', height: '60px', background: '#1A4D2E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(26,77,46,0.4)' }}>
                         <Camera size={26} color="white" />
                     </div>
                     <span style={{ fontSize: '10px', fontWeight: '600', color: '#999', marginTop: '4px' }}>Scan</span>
                 </button>
-                <button onClick={onHistory} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
-                    <History size={24} />
-                    <span style={{ fontSize: '10px', fontWeight: '600' }}>History</span>
+                <button onClick={onHistory} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
+                    <History size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>History</span>
                 </button>
-                <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
-                    <User size={24} />
-                    <span style={{ fontSize: '10px', fontWeight: '600' }}>Profile</span>
+                <button onClick={onProfile} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
+                    <User size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>Profile</span>
                 </button>
             </div>
         </div>

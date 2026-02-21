@@ -1,10 +1,12 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Camera, Sparkles, ImagePlus } from 'lucide-react';
+import { X, Camera, Sparkles, ImagePlus, AlertCircle } from 'lucide-react';
+import { identifyPlantWithGemini } from '../../services/geminiService';
+import type { PlantData } from '../../services/plantService';
 
 interface ScannerProps {
     onClose: () => void;
-    onCapture: (imageData: string) => void;
+    onCapture: (result: PlantData | null) => void;
 }
 
 export const Scanner: React.FC<ScannerProps> = ({ onClose, onCapture }) => {
@@ -14,6 +16,7 @@ export const Scanner: React.FC<ScannerProps> = ({ onClose, onCapture }) => {
     const streamRef = useRef<MediaStream | null>(null);
     const isMounted = useRef(true);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [analyzeStatus, setAnalyzeStatus] = useState('Identifying...');
     const [laserY, setLaserY] = useState(0);
     const [cameraError, setCameraError] = useState(false);
 
@@ -21,183 +24,163 @@ export const Scanner: React.FC<ScannerProps> = ({ onClose, onCapture }) => {
         isMounted.current = true;
         async function setupCamera() {
             try {
-                const mediaStream = await navigator.mediaDevices.getUserMedia({
-                    video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } },
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 1280 } },
                     audio: false
                 });
-                streamRef.current = mediaStream;
-                if (videoRef.current) {
-                    videoRef.current.srcObject = mediaStream;
-                }
-            } catch (err) {
-                console.error("Camera access error:", err);
+                streamRef.current = stream;
+                if (videoRef.current) videoRef.current.srcObject = stream;
+            } catch {
                 setCameraError(true);
             }
         }
         setupCamera();
 
-        // Laser animation
-        let direction = 1;
-        let pos = 0;
+        let dir = 1, pos = 0;
         const interval = setInterval(() => {
-            pos += direction * 1.5;
-            if (pos >= 98) direction = -1;
-            if (pos <= 2) direction = 1;
+            pos += dir * 1.5;
+            if (pos >= 98) dir = -1;
+            if (pos <= 2) dir = 1;
             setLaserY(pos);
         }, 20);
 
         return () => {
             isMounted.current = false;
             clearInterval(interval);
-            streamRef.current?.getTracks().forEach(track => track.stop());
+            streamRef.current?.getTracks().forEach(t => t.stop());
         };
     }, []);
 
-    const processCapture = useCallback((dataUrl: string) => {
+    const analyzeImage = useCallback(async (dataUrl: string) => {
         setIsAnalyzing(true);
-        setTimeout(() => {
+        setAnalyzeStatus('Sending to Gemini AI...');
+        try {
+            setAnalyzeStatus('Identifying plant...');
+            const result = await identifyPlantWithGemini(dataUrl);
             if (isMounted.current) {
-                onCapture(dataUrl);
+                // Attach a fallback image using Unsplash if Gemini didn't return one
+                if (result && !result.image) {
+                    result.image = `https://source.unsplash.com/600x600/?${encodeURIComponent((result.commonName || 'plant') + ' plant')}`;
+                }
+                onCapture(result);
             }
-        }, 2000);
+        } catch {
+            if (isMounted.current) onCapture(null);
+        }
     }, [onCapture]);
 
     const captureFromCamera = () => {
-        if (videoRef.current && canvasRef.current && !isAnalyzing) {
-            const context = canvasRef.current.getContext('2d');
-            if (context) {
-                canvasRef.current.width = videoRef.current.videoWidth;
-                canvasRef.current.height = videoRef.current.videoHeight;
-                context.drawImage(videoRef.current, 0, 0);
-                processCapture(canvasRef.current.toDataURL('image/jpeg', 0.9));
-            }
-        }
+        if (!videoRef.current || !canvasRef.current || isAnalyzing) return;
+        const ctx = canvasRef.current.getContext('2d');
+        if (!ctx) return;
+        canvasRef.current.width = videoRef.current.videoWidth;
+        canvasRef.current.height = videoRef.current.videoHeight;
+        ctx.drawImage(videoRef.current, 0, 0);
+        analyzeImage(canvasRef.current.toDataURL('image/jpeg', 0.85));
     };
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || isAnalyzing) return;
         const reader = new FileReader();
-        reader.onload = (event) => {
-            const dataUrl = event.target?.result as string;
-            if (dataUrl) {
-                processCapture(dataUrl);
-            }
+        reader.onload = (ev) => {
+            const url = ev.target?.result as string;
+            if (url) analyzeImage(url);
         };
         reader.readAsDataURL(file);
+        e.target.value = '';
     };
+
+    const cornerStyle = (pos: object) => ({ position: 'absolute' as const, width: '26px', height: '26px', ...pos });
 
     return (
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{ position: 'fixed', inset: 0, zIndex: 100, background: '#0a0a0a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}
+            style={{ position: 'fixed', inset: 0, zIndex: 100, background: '#0a0a0a', overflow: 'hidden' }}
         >
             {/* Camera Feed */}
             {!cameraError ? (
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }}
-                />
+                <video ref={videoRef} autoPlay playsInline
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.9 }} />
             ) : (
-                <div style={{ position: 'absolute', inset: 0, background: '#1a1a1a', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', color: 'rgba(255,255,255,0.5)' }}>
-                    <Camera size={48} />
-                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '500', textAlign: 'center', padding: '0 40px' }}>Camera not available. Please upload a photo instead.</p>
+                <div style={{ position: 'absolute', inset: 0, background: '#111', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+                    <AlertCircle size={48} color="rgba(255,255,255,0.3)" />
+                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px', textAlign: 'center', padding: '0 40px', margin: 0 }}>
+                        Camera unavailable. Use the upload button below to identify a plant from your photos.
+                    </p>
                 </div>
             )}
 
-            {/* Scan Frame Overlay */}
+            {/* Dim overlay + scan frame */}
             {!cameraError && (
                 <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
-                    {/* Dim edges */}
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.35)' }} />
-                    {/* Frame */}
-                    <div style={{
-                        position: 'absolute', top: '50%', left: '50%',
-                        transform: 'translate(-50%, -58%)',
-                        width: '78vw', height: '52vh',
-                        maxWidth: '320px', maxHeight: '380px',
-                    }}>
-                        {/* Clear window (no background) */}
-                        <div style={{ position: 'absolute', inset: 0, border: '1.5px solid rgba(255,255,255,0.2)', borderRadius: '20px', overflow: 'hidden' }}>
-                            {/* Laser */}
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.38)' }} />
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -58%)', width: '78vw', height: '52vh', maxWidth: '320px', maxHeight: '380px' }}>
+                        <div style={{ position: 'absolute', inset: 0, border: '1.5px solid rgba(255,255,255,0.18)', borderRadius: '20px', overflow: 'hidden' }}>
                             {!isAnalyzing && (
-                                <div style={{
-                                    position: 'absolute', left: 0, right: 0, height: '2px', top: `${laserY}%`,
-                                    background: 'linear-gradient(to right, transparent 0%, #4CAF50 30%, #81C784 50%, #4CAF50 70%, transparent 100%)',
-                                    boxShadow: '0 0 10px 2px rgba(76,175,80,0.6)',
-                                }} />
+                                <div style={{ position: 'absolute', left: 0, right: 0, top: `${laserY}%`, height: '2px', background: 'linear-gradient(to right, transparent, #4CAF50, transparent)', boxShadow: '0 0 12px rgba(76,175,80,0.7)' }} />
                             )}
-                            {/* Analyzing */}
                             <AnimatePresence>
                                 {isAnalyzing && (
-                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'absolute', inset: 0, background: 'rgba(26,77,46,0.55)', backdropFilter: 'blur(4px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ position: 'absolute', inset: 0, background: 'rgba(26,77,46,0.55)', backdropFilter: 'blur(6px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
                                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1.5, ease: 'linear' }}>
-                                            <Sparkles size={40} color="white" />
+                                            <Sparkles size={44} color="white" />
                                         </motion.div>
-                                        <span style={{ color: 'white', fontSize: '15px', fontWeight: '800', letterSpacing: '2px', textTransform: 'uppercase' }}>Identifying...</span>
+                                        <span style={{ color: 'white', fontSize: '14px', fontWeight: '700', textAlign: 'center' }}>{analyzeStatus}</span>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
                         </div>
-                        {/* Corner marks */}
-                        {[
-                            { top: -2, left: -2, borderTop: '3px solid #4CAF50', borderLeft: '3px solid #4CAF50', borderRadius: '4px 0 0 0' },
-                            { top: -2, right: -2, borderTop: '3px solid #4CAF50', borderRight: '3px solid #4CAF50', borderRadius: '0 4px 0 0' },
-                            { bottom: -2, left: -2, borderBottom: '3px solid #4CAF50', borderLeft: '3px solid #4CAF50', borderRadius: '0 0 0 4px' },
-                            { bottom: -2, right: -2, borderBottom: '3px solid #4CAF50', borderRight: '3px solid #4CAF50', borderRadius: '0 0 4px 0' },
-                        ].map((s, i) => <div key={i} style={{ position: 'absolute', width: '24px', height: '24px', ...s }} />)}
+                        {/* Corners */}
+                        <div style={cornerStyle({ top: -2, left: -2, borderTop: '3px solid #4CAF50', borderLeft: '3px solid #4CAF50', borderRadius: '4px 0 0 0' })} />
+                        <div style={cornerStyle({ top: -2, right: -2, borderTop: '3px solid #4CAF50', borderRight: '3px solid #4CAF50', borderRadius: '0 4px 0 0' })} />
+                        <div style={cornerStyle({ bottom: -2, left: -2, borderBottom: '3px solid #4CAF50', borderLeft: '3px solid #4CAF50', borderRadius: '0 0 0 4px' })} />
+                        <div style={cornerStyle({ bottom: -2, right: -2, borderBottom: '3px solid #4CAF50', borderRight: '3px solid #4CAF50', borderRadius: '0 0 4px 0' })} />
                     </div>
                 </div>
             )}
 
-            {/* Top Controls */}
+            {/* Top bar */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '48px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
                 <button onClick={onClose} style={{ width: '44px', height: '44px', background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(8px)' }}>
                     <X size={22} color="white" />
                 </button>
-                <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '13px', fontWeight: '600' }}>Point at a plant</span>
+                <div style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(8px)', borderRadius: '20px', padding: '6px 14px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '12px', fontWeight: '700' }}>✦ Gemini AI</span>
+                </div>
                 <div style={{ width: '44px' }} />
             </div>
 
-            {/* Bottom Controls: Upload + Capture */}
-            <div style={{ position: 'absolute', bottom: '40px', left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '32px', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
-                {/* Upload photo button */}
-                <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isAnalyzing}
-                    style={{ width: '56px', height: '56px', background: 'rgba(255,255,255,0.15)', border: '2px solid rgba(255,255,255,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(8px)' }}
-                >
-                    <ImagePlus size={24} color="white" />
-                </button>
+            {/* Bottom controls */}
+            <div style={{ position: 'absolute', bottom: '44px', left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '36px', zIndex: 10, paddingBottom: 'env(safe-area-inset-bottom)' }}>
+                {/* Upload */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                    <button onClick={() => fileInputRef.current?.click()} disabled={isAnalyzing}
+                        style={{ width: '56px', height: '56px', background: 'rgba(255,255,255,0.15)', border: '2px solid rgba(255,255,255,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', backdropFilter: 'blur(8px)', opacity: isAnalyzing ? 0.4 : 1 }}>
+                        <ImagePlus size={24} color="white" />
+                    </button>
+                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10px', fontWeight: '600' }}>Upload</span>
+                </div>
 
-                {/* Main capture button */}
-                <button
-                    onClick={captureFromCamera}
-                    disabled={isAnalyzing || cameraError}
-                    style={{ width: '80px', height: '80px', background: 'white', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (isAnalyzing || cameraError) ? 'not-allowed' : 'pointer', boxShadow: '0 0 0 6px rgba(255,255,255,0.2)', opacity: (isAnalyzing || cameraError) ? 0.4 : 1 }}
-                >
-                    <div style={{ width: '64px', height: '64px', background: '#1A4D2E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Camera size={30} color="white" />
-                    </div>
-                </button>
+                {/* Capture */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                    <button onClick={captureFromCamera} disabled={isAnalyzing || cameraError}
+                        style={{ width: '80px', height: '80px', background: 'white', border: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: (isAnalyzing || cameraError) ? 'not-allowed' : 'pointer', boxShadow: '0 0 0 6px rgba(255,255,255,0.2)', opacity: (isAnalyzing || cameraError) ? 0.4 : 1 }}>
+                        <div style={{ width: '64px', height: '64px', background: '#1A4D2E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Camera size={30} color="white" />
+                        </div>
+                    </button>
+                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '10px', fontWeight: '600' }}>Scan</span>
+                </div>
 
-                {/* Spacer */}
-                <div style={{ width: '56px', height: '56px' }} />
+                {/* Placeholder for symmetry */}
+                <div style={{ width: '56px' }} />
             </div>
 
-            {/* Hidden inputs */}
             <canvas ref={canvasRef} style={{ display: 'none' }} />
-            <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileUpload}
-                style={{ display: 'none' }}
-            />
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleUpload} style={{ display: 'none' }} />
         </motion.div>
     );
 };
