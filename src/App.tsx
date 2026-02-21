@@ -24,11 +24,23 @@ function App() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [garden, setGarden] = useState<PlantData[]>([]);
   const [identifiedPlant, setIdentifiedPlant] = useState<PlantData | null>(null);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    try { return localStorage.getItem('plantae_darkmode') === 'true'; } catch { return false; }
+  });
 
   useEffect(() => {
     setHistory(storageService.getHistory());
     setGarden(storageService.getGarden());
   }, []);
+
+  // Apply dark mode to body and root
+  useEffect(() => {
+    document.body.style.background = darkMode ? '#0a120a' : 'white';
+    document.body.style.color = darkMode ? '#e0f0e0' : '#1A4D2E';
+    try { localStorage.setItem('plantae_darkmode', String(darkMode)); } catch { }
+  }, [darkMode]);
+
+  const handleToggleDarkMode = () => setDarkMode(d => !d);
 
   const handleSaveToGarden = (plant: PlantData) => {
     const isSaved = garden.find(p => p.id === plant.id);
@@ -41,27 +53,50 @@ function App() {
     }
   };
 
-  // Scanner now directly provides PlantData | null from Gemini
-  const handleCapture = (result: PlantData | null) => {
+  const handleCapture = (result: PlantData | { error: string } | null) => {
     setShowScanner(false);
-    if (result === null) {
+
+    if (!result) {
       setNoPlantFound(true);
+      setErrorState('TECHNICAL_ERROR');
       setTimeout(() => setNoPlantFound(false), 3500);
-    } else {
-      const updatedHistory = storageService.addToHistory(result);
-      setHistory(updatedHistory);
-      setIdentifiedPlant(result);
+      return;
+    }
+
+    if ('error' in result) {
+      setNoPlantFound(true);
+      setErrorState(result.error);
+      setTimeout(() => setNoPlantFound(false), 3500);
+      return;
+    }
+
+    // Success
+    const updatedHistory = storageService.addToHistory(result);
+    setHistory(updatedHistory);
+    setIdentifiedPlant(result);
+    setErrorState(null);
+  };
+
+  const [errorState, setErrorState] = useState<string | null>(null);
+
+  const getToastMessage = () => {
+    switch (errorState) {
+      case 'QUOTA_EXCEEDED': return '⏳ Gemini quota exceeded. Please wait 60 seconds and try again.';
+      case 'API_KEY_MISSING': return '🔑 API Key missing. Please check your .env.local file.';
+      case 'NO_PLANT_DETECTED': return '🌿 No plant detected — make sure the plant is clearly visible!';
+      case 'TECHNICAL_ERROR': return '❌ API Error. Check your internet connection or API key permissions.';
+      default: return '⚠️ Unknown error occurred. Check browser console for [Gemini Debug] logs.';
     }
   };
 
   const handleClearHistory = () => {
-    localStorage.removeItem('plantae_history');
-    setHistory([]);
+    const updated = storageService.clearHistory();
+    setHistory(updated);
   };
 
   const handleClearGarden = () => {
-    localStorage.removeItem('plantae_garden');
-    setGarden([]);
+    const updated = storageService.clearGarden();
+    setGarden(updated);
   };
 
   useEffect(() => {
@@ -69,14 +104,16 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
+  const appBg = darkMode ? '#0a120a' : 'white';
+
   return (
-    <div style={{ width: '100%', height: '100%', background: 'white', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', background: appBg, overflow: 'hidden', position: 'relative', transition: 'background 0.3s' }}>
       <AnimatePresence mode="wait">
         {showIntro ? (
           <motion.div
             key="intro"
             exit={{ y: '-100%', transition: { duration: 1, ease: [0.45, 0, 0.55, 1] } }}
-            style={{ position: 'absolute', inset: 0, zIndex: 50, background: 'white' }}
+            style={{ position: 'absolute', inset: 0, zIndex: 50, background: appBg }}
           >
             <PlantaeCinematicLogo />
           </motion.div>
@@ -94,7 +131,10 @@ function App() {
               onGarden={() => setShowGarden(true)}
               onSearch={() => setShowSearch(true)}
               onProfile={() => setShowProfile(true)}
+              darkMode={darkMode}
             />
+            {/* Debug Version Tag */}
+            <div style={{ position: 'fixed', bottom: 5, right: 10, fontSize: '9px', opacity: 0.3, color: darkMode ? 'white' : 'black', pointerEvents: 'none' }}>v1.0.9-debug</div>
 
             <AnimatePresence>
               {showScanner && (
@@ -110,6 +150,7 @@ function App() {
                   onClose={() => setIdentifiedPlant(null)}
                   onSave={handleSaveToGarden}
                   isInGarden={!!garden.find(p => p.id === identifiedPlant.id)}
+                  darkMode={darkMode}
                 />
               )}
 
@@ -121,6 +162,7 @@ function App() {
                     setIdentifiedPlant(item);
                     setShowHistory(false);
                   }}
+                  darkMode={darkMode}
                 />
               )}
 
@@ -132,6 +174,7 @@ function App() {
                     setIdentifiedPlant(item);
                     setShowGarden(false);
                   }}
+                  darkMode={darkMode}
                 />
               )}
 
@@ -142,6 +185,7 @@ function App() {
                     setIdentifiedPlant(item);
                     setShowSearch(false);
                   }}
+                  darkMode={darkMode}
                 />
               )}
 
@@ -152,6 +196,8 @@ function App() {
                   historyCount={history.length}
                   onClearHistory={handleClearHistory}
                   onClearGarden={handleClearGarden}
+                  darkMode={darkMode}
+                  onToggleDarkMode={handleToggleDarkMode}
                 />
               )}
             </AnimatePresence>
@@ -160,19 +206,23 @@ function App() {
             <AnimatePresence>
               {noPlantFound && (
                 <motion.div
-                  key="no-plant-toast"
+                  key="error-toast"
                   initial={{ opacity: 0, y: 40 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 40 }}
                   style={{
                     position: 'fixed', bottom: '100px', left: '20px', right: '20px',
-                    background: '#333', color: 'white', padding: '14px 20px',
-                    borderRadius: '16px', textAlign: 'center', zIndex: 999,
-                    fontSize: '15px', fontWeight: '600',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.25)'
+                    background: errorState === 'QUOTA_EXCEEDED' ? '#FFD700' : (errorState === 'NO_PLANT_DETECTED' ? '#333' : '#FF5252'),
+                    color: errorState === 'QUOTA_EXCEEDED' ? '#5D4037' : 'white',
+                    padding: '16px 24px',
+                    borderRadius: '20px', textAlign: 'center', zIndex: 9999,
+                    fontSize: '15px', fontWeight: '700',
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.3)',
+                    border: errorState === 'QUOTA_EXCEEDED' ? '2px solid #FFA000' : 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px'
                   }}
                 >
-                  🌿 No plant detected — try a clearer photo!
+                  {getToastMessage()}
                 </motion.div>
               )}
             </AnimatePresence>

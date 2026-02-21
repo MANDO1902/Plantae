@@ -6,7 +6,7 @@ import type { PlantData } from '../../services/plantService';
 
 interface ScannerProps {
     onClose: () => void;
-    onCapture: (result: PlantData | null) => void;
+    onCapture: (result: PlantData | { error: string } | null) => void;
 }
 
 export const Scanner: React.FC<ScannerProps> = ({ onClose, onCapture }) => {
@@ -59,13 +59,22 @@ export const Scanner: React.FC<ScannerProps> = ({ onClose, onCapture }) => {
             const result = await identifyPlantWithGemini(dataUrl);
             if (isMounted.current) {
                 // Attach a fallback image using Unsplash if Gemini didn't return one
-                if (result && !result.image) {
-                    result.image = `https://source.unsplash.com/600x600/?${encodeURIComponent((result.commonName || 'plant') + ' plant')}`;
+                // Only do this if result is a valid plant object (i.e. not null and not an error object)
+                if (result && !('error' in result) && !result.image) {
+                    // images.unsplash.com (source.unsplash.com is deprecated/broken)
+                    result.image = `https://images.unsplash.com/photo-1518495973542-4542c06a5843?auto=format&fit=crop&q=80&w=600`;
                 }
                 onCapture(result);
             }
-        } catch {
-            if (isMounted.current) onCapture(null);
+        } catch (err) {
+            console.error('Scanner analyze error:', err);
+            if (isMounted.current) {
+                // If it's a real error (not just "no plant"), we still return null
+                // but we could trigger a specific alert if we wanted.
+                onCapture(null);
+            }
+        } finally {
+            if (isMounted.current) setIsAnalyzing(false);
         }
     }, [onCapture]);
 

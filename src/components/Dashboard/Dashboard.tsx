@@ -8,19 +8,26 @@ interface DashboardProps {
     onGarden: () => void;
     onSearch: () => void;
     onProfile: () => void;
+    darkMode?: boolean;
 }
 
-export const Dashboard: React.FC<DashboardProps> = ({ onScan, onHistory, onGarden, onSearch, onProfile }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onScan, onHistory, onGarden, onSearch, onProfile, darkMode }) => {
+    const bg = darkMode ? '#0a120a' : '#F0F7F0';
+    const headerBg = darkMode ? '#0e160e' : 'white';
+    const cardBg = darkMode ? '#1a291a' : 'white';
+    const borderColor = darkMode ? '#2a3d2a' : '#E0EDE0';
+    const textColor = darkMode ? '#e0f0e0' : '#1A4D2E';
+    const subText = darkMode ? 'rgba(180,220,180,0.6)' : 'rgba(78,52,46,0.6)';
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: '#F0F7F0', fontFamily: 'system-ui, -apple-system, sans-serif', overflow: 'hidden', position: 'relative' }}>
+        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', backgroundColor: bg, fontFamily: 'system-ui, -apple-system, sans-serif', overflow: 'hidden', position: 'relative' }}>
 
             {/* Header */}
-            <div style={{ padding: '52px 20px 16px', background: 'white', borderBottom: '1px solid #E0EDE0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+            <div style={{ padding: '52px 20px 16px', background: headerBg, borderBottom: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '34px', height: '34px', background: '#1A4D2E', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Leaf size={18} color="white" />
                     </div>
-                    <span style={{ fontSize: '22px', fontWeight: '800', color: '#1A4D2E', letterSpacing: '-0.5px' }}>Plantae</span>
+                    <span style={{ fontSize: '22px', fontWeight: '800', color: textColor, letterSpacing: '-0.5px' }}>Plantae</span>
                 </div>
                 <button onClick={onProfile} style={{ width: '38px', height: '38px', background: '#1A4D2E', borderRadius: '50%', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <User size={18} color="white" />
@@ -55,51 +62,51 @@ export const Dashboard: React.FC<DashboardProps> = ({ onScan, onHistory, onGarde
                 {/* Quick Actions */}
                 <div style={{ padding: '4px 20px 8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                     {[
-                        { icon: Search, label: 'Search', sublabel: 'Any plant', action: onSearch, color: '#E3F2FD', iconColor: '#1565C0' },
-                        { icon: History, label: 'History', sublabel: 'Past scans', action: onHistory, color: '#E8F5E9', iconColor: '#2E7D32' },
-                        { icon: Leaf, label: 'Garden', sublabel: 'My plants', action: onGarden, color: '#FFF8E1', iconColor: '#F57F17' },
+                        { icon: Search, label: 'Search', sublabel: 'Any plant', action: onSearch, color: darkMode ? '#1a2a3a' : '#E3F2FD', iconColor: '#1565C0' },
+                        { icon: History, label: 'History', sublabel: 'Past scans', action: onHistory, color: darkMode ? '#1a2d1a' : '#E8F5E9', iconColor: '#2E7D32' },
+                        { icon: Leaf, label: 'Garden', sublabel: 'My plants', action: onGarden, color: darkMode ? '#2a2a0a' : '#FFF8E1', iconColor: '#F57F17' },
                     ].map(({ icon: Icon, label, sublabel, action, color, iconColor }) => (
                         <motion.button
                             key={label}
                             whileTap={{ scale: 0.95 }}
                             onClick={action}
-                            style={{ background: 'white', border: 'none', borderRadius: '20px', padding: '16px 12px', cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 10px rgba(26,77,46,0.06)' }}
+                            style={{ background: cardBg, border: 'none', borderRadius: '20px', padding: '16px 12px', cursor: 'pointer', textAlign: 'left', boxShadow: '0 2px 10px rgba(26,77,46,0.06)' }}
                         >
                             <div style={{ width: '38px', height: '38px', background: color, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
                                 <Icon size={20} color={iconColor} />
                             </div>
-                            <div style={{ fontSize: '13px', fontWeight: '700', color: '#1A4D2E', marginBottom: '2px' }}>{label}</div>
-                            <div style={{ fontSize: '11px', color: '#4E342E', opacity: 0.5, lineHeight: 1.2 }}>{sublabel}</div>
+                            <div style={{ fontSize: '13px', fontWeight: '700', color: textColor, marginBottom: '2px' }}>{label}</div>
+                            <div style={{ fontSize: '11px', color: subText, lineHeight: 1.2 }}>{sublabel}</div>
                         </motion.button>
                     ))}
                 </div>
 
                 {/* Info Banner */}
                 <div style={{ padding: '8px 20px' }}>
-                    <div style={{ background: 'white', borderRadius: '20px', padding: '16px 20px', boxShadow: '0 2px 10px rgba(26,77,46,0.05)', display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ background: cardBg, borderRadius: '20px', padding: '16px 20px', boxShadow: '0 2px 10px rgba(26,77,46,0.05)', display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ fontSize: '32px' }}>🌍</div>
                         <div>
-                            <div style={{ fontWeight: '700', fontSize: '15px', color: '#1A4D2E', marginBottom: '2px' }}>400,000+ Species</div>
-                            <div style={{ fontSize: '13px', color: '#4E342E', opacity: 0.6, lineHeight: 1.3 }}>Gemini AI can identify and explain any plant on Earth</div>
+                            <div style={{ fontWeight: '700', fontSize: '15px', color: textColor, marginBottom: '2px' }}>400,000+ Species</div>
+                            <div style={{ fontSize: '13px', color: subText, lineHeight: 1.3 }}>Gemini AI can identify and explain any plant on Earth</div>
                         </div>
                     </div>
                 </div>
 
                 {/* How it works */}
                 <div style={{ padding: '8px 20px 0' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: '700', color: '#1A4D2E', margin: '0 0 12px' }}>How it works</h2>
+                    <h2 style={{ fontSize: '15px', fontWeight: '700', color: textColor, margin: '0 0 12px' }}>How it works</h2>
                     {[
                         { num: '1', title: 'Point or Upload', desc: 'Use your camera or pick a photo from your gallery' },
                         { num: '2', title: 'AI Identifies', desc: 'Gemini analyzes the image and identifies the plant species' },
                         { num: '3', title: 'Get Full Details', desc: 'Receive care guide, toxicity, and botanical information' },
                     ].map((step) => (
-                        <div key={step.num} style={{ background: 'white', borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 2px 8px rgba(26,77,46,0.04)' }}>
+                        <div key={step.num} style={{ background: cardBg, borderRadius: '16px', padding: '14px 16px', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 2px 8px rgba(26,77,46,0.04)' }}>
                             <div style={{ width: '36px', height: '36px', background: '#1A4D2E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                 <span style={{ color: 'white', fontWeight: '800', fontSize: '14px' }}>{step.num}</span>
                             </div>
                             <div>
-                                <div style={{ fontWeight: '700', fontSize: '14px', color: '#1A4D2E', marginBottom: '2px' }}>{step.title}</div>
-                                <div style={{ fontSize: '12px', color: '#4E342E', opacity: 0.6 }}>{step.desc}</div>
+                                <div style={{ fontWeight: '700', fontSize: '14px', color: textColor, marginBottom: '2px' }}>{step.title}</div>
+                                <div style={{ fontSize: '12px', color: subText }}>{step.desc}</div>
                             </div>
                         </div>
                     ))}
@@ -107,23 +114,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ onScan, onHistory, onGarde
             </div>
 
             {/* Bottom Tab Bar */}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #E0EDE0', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0', paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: headerBg, borderTop: `1px solid ${borderColor}`, display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '10px 0', paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}>
                 <button onClick={onGarden} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#4CAF50' }}>
                     <Leaf size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>Garden</span>
                 </button>
-                <button onClick={onSearch} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
+                <button onClick={onSearch} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: subText }}>
                     <Search size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>Search</span>
                 </button>
                 <button onClick={onScan} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', marginTop: '-24px' }}>
                     <div style={{ width: '60px', height: '60px', background: '#1A4D2E', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(26,77,46,0.4)' }}>
                         <Camera size={26} color="white" />
                     </div>
-                    <span style={{ fontSize: '10px', fontWeight: '600', color: '#999', marginTop: '4px' }}>Scan</span>
+                    <span style={{ fontSize: '10px', fontWeight: '600', color: subText, marginTop: '4px' }}>Scan</span>
                 </button>
-                <button onClick={onHistory} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
+                <button onClick={onHistory} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: subText }}>
                     <History size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>History</span>
                 </button>
-                <button onClick={onProfile} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: '#999' }}>
+                <button onClick={onProfile} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', background: 'none', border: 'none', cursor: 'pointer', color: subText }}>
                     <User size={22} /><span style={{ fontSize: '10px', fontWeight: '600' }}>Profile</span>
                 </button>
             </div>
