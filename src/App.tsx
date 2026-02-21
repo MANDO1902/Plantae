@@ -19,6 +19,7 @@ function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [showGarden, setShowGarden] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [noPlantFound, setNoPlantFound] = useState(false);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [garden, setGarden] = useState<PlantData[]>([]);
   const [identifiedPlant, setIdentifiedPlant] = useState<PlantData | null>(null);
@@ -42,10 +43,15 @@ function App() {
   const handleCapture = async (imageData: string) => {
     try {
       const result = await identifyPlant(imageData);
-      const updatedHistory = storageService.addToHistory(result);
-      setHistory(updatedHistory);
-      setIdentifiedPlant(result);
       setShowScanner(false);
+      if (result === null) {
+        setNoPlantFound(true);
+        setTimeout(() => setNoPlantFound(false), 3000);
+      } else {
+        const updatedHistory = storageService.addToHistory(result);
+        setHistory(updatedHistory);
+        setIdentifiedPlant(result);
+      }
     } catch (err) {
       console.error("Identification failed:", err);
       setShowScanner(false);
@@ -138,6 +144,27 @@ function App() {
                     setShowSearch(false);
                   }}
                 />
+              )}
+            </AnimatePresence>
+
+            {/* No Plant Found Toast */}
+            <AnimatePresence>
+              {noPlantFound && (
+                <motion.div
+                  key="no-plant-toast"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 40 }}
+                  style={{
+                    position: 'fixed', bottom: '100px', left: '20px', right: '20px',
+                    background: '#333', color: 'white', padding: '14px 20px',
+                    borderRadius: '16px', textAlign: 'center', zIndex: 999,
+                    fontSize: '15px', fontWeight: '600',
+                    boxShadow: '0 8px 32px rgba(0,0,0,0.25)'
+                  }}
+                >
+                  🌿 No plant detected — try a clearer photo!
+                </motion.div>
               )}
             </AnimatePresence>
           </motion.div>
